@@ -1,0 +1,26 @@
+# ignore python cache files
+__pycache__/
+
+# ignore python compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# ignore pyinstaller files
+dist/
+build/
+
+# ignore virtual environment folders
+.venv/
+env/
+venv/
+conda-env/
+
+# ignore IDE specific files
+.vscode/
+.idea/
+*.iml
+
+# ignore system files
+.DS_Store
+Thumbs.db

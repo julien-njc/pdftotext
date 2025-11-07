@@ -1,0 +1,95 @@
+# CI workflow: run tests on push/PR and email the committer with results
+# Requirements:
+# - Add repository secrets: SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SENDER_EMAIL
+#   (SMTP credentials used to send the notification email)
+# - The action will attempt to determine the committer email via git; if it can't, you
+#   may want to add a DEFAULT_RECIPIENT secret or modify the workflow.
+
+name: CI - Tests and Email Notification
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr imagemagick
+          # Remove the ImageMagick PDF security policy that prevents PDF operations
+          sudo sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Get committer email
+        id: get-email
+        run: |
+          # Try to get the author email from the latest commit
+          author_email=$(git log -1 --pretty=format:'%ae' 2>/dev/null || true)
+          # Fallback to GitHub event head_commit author email when available
+          if [ -z "$author_email" ]; then
+            author_email="${{ github.event.head_commit.author.email }}"
+          fi
+          # Final fallback: empty (action-send-mail will fail if there is no recipient)
+          echo "author_email=$author_email" >> $GITHUB_OUTPUT
+
+      - name: Run tests and capture output
+        id: run-tests
+        run: |
+          set -o pipefail
+          # Run test runner and capture output to file
+          mkdir -p test-results
+          python -m unittest discover tests -v 2>&1 | tee test-results/test_output.txt
+          echo "test_exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Set status
+        id: set-status
+        run: |
+          if [ "${{ steps.run-tests.outputs.test_exit_code }}" = "0" ]; then
+            echo "status=SUCCESS" >> $GITHUB_OUTPUT
+          else
+            echo "status=FAILURE" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send notification email (always runs)
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          # SMTP server config -- must be stored in repository secrets
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          secure: true
+
+          # Email fields
+          subject: "CI ${{ steps.set-status.outputs.status }} - ${{ github.repository }} - ${{ github.sha }}"
+          body: |
+            Repository: ${{ github.repository }}
+            Commit: ${{ github.sha }}
+            Author: ${{ steps.get-email.outputs.author_email }}
+            Result: ${{ steps.set-status.outputs.status }}
+            Run URL: ${{ github.run_url }}
+
+            The detailed test output is attached.
+
+          to: ${{ steps.get-email.outputs.author_email }}
+          from: ${{ secrets.SENDER_EMAIL }}
+          # Attach the captured test output
+          attachments: test-results/test_output.txt
+
