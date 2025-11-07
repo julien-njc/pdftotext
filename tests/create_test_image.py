@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Test file generator: Creates a sample image with text for OCR testing.
+
+Copyright (c) 2025 NJC Software LLC
+Licensed under the MIT License. See LICENSE file for details.
+"""
+
 from PIL import Image, ImageDraw, ImageFont
 import os
 

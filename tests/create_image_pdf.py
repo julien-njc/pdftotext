@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Test file generator: Creates a non-searchable PDF from an image.
+
+Copyright (c) 2025 NJC Software LLC
+Licensed under the MIT License. See LICENSE file for details.
+"""
+
 from PIL import Image
 import img2pdf
 

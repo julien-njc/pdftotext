@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+PDF to Text Converter with OCR support.
+
+This tool extracts text from PDF files, with support for both searchable PDFs
+and scanned documents (using OCR). It can output to file or stdout and includes
+filtering capabilities.
+
+Copyright (c) 2025 NJC Software LLC
+Licensed under the MIT License. See LICENSE file for details.
+"""
+
 import os
 import sys
 import argparse

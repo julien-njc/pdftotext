@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Test file generator: Creates a sample PDF with searchable text.
+
+Copyright (c) 2025 NJC Software LLC
+Licensed under the MIT License. See LICENSE file for details.
+"""
+
 from fpdf import FPDF
 
 def create_sample_pdf():

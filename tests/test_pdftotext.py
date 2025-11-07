@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Unit tests for the PDF to Text Converter.
+
+Tests both text extraction and OCR functionality with various types of input files.
+
+Copyright (c) 2025 NJC Software LLC
+Licensed under the MIT License. See LICENSE file for details.
+"""
+
 import os
 import sys
 import unittest
